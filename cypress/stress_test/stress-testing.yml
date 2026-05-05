@@ -1,0 +1,38 @@
+config:
+  target: "https://httpbin.org/"
+
+  payload:
+    path: "users.csv"
+    fields:
+      - "username"
+      - "password"
+
+  phases: 
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 100   
+    - duration: 600
+      arrivalRate: 100
+    - duration: 60
+      arrivalRate: 300
+    - duration: 120
+      arrivalRate: 300
+      rampTo: 10
+
+  ensure:
+    thresholds:
+      - expression: "http.response_time.p95 < 3000"
+      - expression: "http.response_time.p99 < 5000"
+      - expression: "http.request_rate > 0"
+      - expression: "http.codes.2xx / http.requests >= 98"
+
+scenarios: 
+  - name: "Getting a resource"      
+    flow: 
+      - get:
+          url: "/get"
+      - post:
+          url: "/post"
+          json:
+            username: "{{ username }}"    
+            password: "{{ password }}"
